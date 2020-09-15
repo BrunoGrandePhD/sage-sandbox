@@ -10,8 +10,7 @@ baseCommand: wc
 
 inputs:
   args:
-    type: string
-    default: ""
+    type: string?
     inputBinding:
       position: 1
       shellQuote: false
