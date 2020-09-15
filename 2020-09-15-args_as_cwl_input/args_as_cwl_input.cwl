@@ -11,6 +11,7 @@ baseCommand: wc
 inputs:
   args:
     type: string
+    default: ""
     inputBinding:
       position: 1
       shellQuote: false
