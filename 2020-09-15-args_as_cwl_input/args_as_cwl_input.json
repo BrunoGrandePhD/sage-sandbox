@@ -1,0 +1,7 @@
+{
+    "args": "-c -l",
+    "file": {
+        "class": "File",
+        "path": "args_as_cwl_input.json"
+    }
+}
