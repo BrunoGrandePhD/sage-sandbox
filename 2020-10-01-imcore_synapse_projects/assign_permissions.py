@@ -21,15 +21,18 @@ the '.synapseConfig' file in your home directory as per:
 
     https://python-docs.synapse.org/build/html/Credentials.html
 
-Install the Synapse Python client before running this script with:
+This script required Python version 3.6 or later. You must also
+install the Synapse Python client using:
 
     pip install synapseclient
 """
 
+import json
 import argparse
 from synapseclient import Synapse, Project
 
 
+VERBOSE = False
 PERMISSIONS = (
     "CREATE",
     "READ",
@@ -42,16 +45,27 @@ PERMISSIONS = (
 
 
 def main():
+    # Parse command-line arguments
     args = parse_arguments()
+    # Set up Synapse
     syn = Synapse()
     syn.login(args.username, args.password, rememberMe=args.remember)
+    # Retrieve Synapse entity (e.g., project, folder)
     entity = syn.get(args.synid, downloadFile=False)
+    log("Entity", entity)
+    # Retrieve team
     team = syn.getTeam(args.team)
-    syn.setPermissions(entity, team.id, accessType=args.permissions)
+    log("Team", team)
+    # Assign specified permissions for given entity and team
+    permissions = syn.setPermissions(entity, team.id, accessType=args.permissions)
+    log("Permissions", permissions)
+    # Celebrate
     print("Success!")
 
 
 def parse_arguments() -> argparse.Namespace:
+
+    # Parse command-line arguments
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
@@ -64,16 +78,39 @@ def parse_arguments() -> argparse.Namespace:
         metavar="PERMISSION",
         help="List of permissions or NONE",
     )
-    parser.add_argument("--username", help="Synapse username")
-    parser.add_argument("--password", help="Synapse password")
+    parser.add_argument("--username", "-u", help="Synapse username")
+    parser.add_argument("--password", "-p", help="Synapse password")
     parser.add_argument(
-        "--remember", help="Remember Synapse credentials", action="store_true"
+        "--remember", "-r", help="Remember Synapse credentials", action="store_true"
+    )
+    parser.add_argument(
+        "--verbose", "-v", help="Display more information", action="store_true"
     )
     args = parser.parse_args()
+
+    # Process arguments
     if "NONE" in args.permissions:
         print("NONE was specified, so revoking all permissions")
         args.permissions = []
+
+    global VERBOSE
+    VERBOSE = args.verbose
+
     return args
+
+
+def log(name, obj):
+    # Convert to dictionary (if possible) to leverage json.dumps()
+    if getattr(obj, "__dict__", None) is not None:
+        obj = vars(obj)
+    # Format object as string based on type
+    if isinstance(obj, dict):
+        obj = json.dumps(obj, indent=4, sort_keys=True)
+    else:
+        obj = str(obj)
+    # If verbose, print object string
+    if VERBOSE:
+        print(f"{name}: {obj}", end="\n\n")
 
 
 if __name__ == "__main__":
