@@ -54,7 +54,7 @@ def main():
     entity = syn.get(args.synid, downloadFile=False)
     log("Entity", entity)
     # Retrieve team
-    team = syn.getTeam(args.team)
+    team = syn.getTeam(args.team)  # TODO: Handle users with try-catch
     log("Team", team)
     # Assign specified permissions for given entity and team
     permissions = syn.setPermissions(entity, team.id, accessType=args.permissions)
