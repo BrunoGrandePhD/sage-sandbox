@@ -30,10 +30,15 @@ For now, the schema graph is generated from a CSV file that lists:
         column refers to the class being instantiated.
 
 The following Google Sheet describes a simplified version of the HTAN
-Synapse structure. A copy of this table is included as a CSV file in
-this repository (i.e. htan_synapse_schema.csv).
+Synapse structure. The most useful sheets are included alonside this
+script as CSV files.
 
     https://docs.google.com/spreadsheets/d/1kUKrAZA16o6J0wNKJPQ6Heh8V9gXKhtuAmRQjBsPHvs
+
+Each sheet in the above Google Sheet has a corresponding page in the
+following LucidChart document where the graph is visualized:
+
+    https://lucid.app/invitations/accept/706d589b-9027-4249-945e-5f728fda468d
 
 At a high level, this script will accomplish the following steps:
 
@@ -56,6 +61,7 @@ schematic repository (commit 2b2a29d8):
 
     - examples/csv_to_schemaorg.py
     - schematic/schemas/examples/explorer_usage.py
+    - schematic/schemas/explorer.py
 
 Current Challenges
 ~~~~~~~~~~~~~~~~~~
@@ -157,16 +163,20 @@ import os
 import argparse
 
 import pandas as pd
+import networkx as nx
 
 from schematic.schemas.explorer import SchemaExplorer
+from schematic.schemas.generator import SchemaGenerator
 from schematic.utils.csv_utils import create_schema_classes
+from schematic.utils.viz_utils import visualize
 
 
 def main():
     args = parse_arguments()
-    schema = load_schema(args.csv_schema)
-    if args.output_graph is not None:
-        visualize_graph(schema, args.output_graph)
+    graph = load_dependency_graph(args.csv_schema)
+    visualize_graph(graph, args.output_graph)
+    dependencies = get_dependency_order(graph)
+    print(dependencies)
 
 
 def parse_arguments():
@@ -181,25 +191,44 @@ def parse_arguments():
     return args
 
 
-def load_schema(csv_filepath):
+def load_dependency_graph(csv_filepath):
     schema = SchemaExplorer()
     classes = pd.read_csv(csv_filepath)
     schema = create_schema_classes(classes, schema)
-    return schema
+    schema_nx = schema.get_nx_schema()
+    dependency_graph = SchemaGenerator.get_subgraph_by_edge_type(
+        schema_nx, schema_nx, "requiresDependency"
+    )
+    return dependency_graph
 
 
-def visualize_graph(schema, output_file):
+def visualize_graph(graph, output_file):
+    # Skip if no output file is given
+    if output_file is None:
+        return
     # Get format from file extension
     file_root, file_ext = os.path.splitext(output_file)
     viz_format = file_ext[1:]  # Remove period
     print(
-        f"Using {viz_format} as GraphViz visualization format. Ensure that "
-        "it is supported: https://www.graphviz.org/doc/info/output.html"
+        f"Using '{viz_format}' as GraphViz visualization format. List of "
+        "available formats: https://www.graphviz.org/doc/info/output.html"
     )
     # Generate and render GraphViz DiGraph object
-    gv_digraph = schema.sub_schema_graph("Synapse", "down")
-    gv_digraph.format = viz_format
-    gv_digraph.render(file_root)
+    edges = list(graph.edges)
+    digraph = visualize(edges)
+    digraph.format = viz_format
+    digraph.render(file_root)
+
+
+def sort_graph_nodes(graph):
+    sorted_nodes = nx.topological_sort(graph)
+    return list(sorted_nodes)
+
+
+def get_dependency_order(graph):
+    sorted_nodes = sort_graph_nodes(graph)
+    dependencies_first = reversed(sorted_nodes)
+    return list(dependencies_first)
 
 
 if __name__ == "__main__":
