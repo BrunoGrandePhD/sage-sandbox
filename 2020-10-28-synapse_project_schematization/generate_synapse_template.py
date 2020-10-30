@@ -40,11 +40,14 @@ At a high level, this script will accomplish the following steps:
     (1) Load the given Synapse schema into a graph representation.
 
     (2) Order the "instance nodes" based on the appropriate sequence
-        of events that need to happen on Synapse. This will involve
-        obtaining the child nodes for the "class nodes" in the
-        following order:
+        of events that need to happen on Synapse, namely:
 
             Project > Folder > Fileview > Team > ACL > Permissions
+
+        This order will be extracted from the dependency graph
+        formed by the 'Requires' edges using topological sorting.
+        For instance, a folder should require a project, or
+        permissions should require a project, a team, and an ACL.
 
     (3) TBD.
 
@@ -53,6 +56,101 @@ schematic repository (commit 2b2a29d8):
 
     - examples/csv_to_schemaorg.py
     - schematic/schemas/examples/explorer_usage.py
+
+Current Challenges
+~~~~~~~~~~~~~~~~~~
+
+(1) One of the main tasks for this script is determining the order
+    in which the Synapse entities need to be created. Topological
+    sorting of a dependency graph is the simplest approach to
+    addressing this problem. If I understand correctly, schematic
+    organizes attributes as nodes in a graph connected by different
+    edge types (e.g. Requires, Properties). To minimize complexity,
+    the dependency graph for sorting should be generated using only
+    one of the edge types. I propose 'Requires' because it makes
+    the most sense for a dependency graph. However, the current
+    version of the schema doesn't obey the above creation order.
+
+(2) In the current version of the schema, the 'Requires' attributes
+    seem to serve two purposes:
+
+        - To establish the order in which entities should be made.
+        - To implicitly set the value of attribute properties.
+
+    For example, the "admin fileview" requires the two center
+    projects, which implicitly defines the "scope" property, but
+    the admin project should also be a requirement for the
+    dependency graph to work. Instead, the fileview is listed as
+    a requirement for the admin project. This inconsistency
+    makes it impossible to use the 'Requires' graph for sorting.
+    On the other hand, including all dependencies in the
+    'Requires' field then prevents implicit property definition.
+    This latter issue isn't worrisome though because a system
+    would be needed to figure out which property was being
+    implicitly defined (e.g. "scope" in the above example).
+
+(3) In the current of the schema, some elements are repeated per
+    instance and others are not. For example, the center-specific
+    projects and teams are repeated, whereas the folders are not.
+    I propose that the graph is kept as simple as possible, and
+    the properties for different instances (like the name) can be
+    defined in another user-configurable YAML file. I envision
+    something like this if a node is only meant to exist once:
+
+        ProjectAdmin:
+          name: HTAN DCC
+        TeamAdmin:
+          name: HTAN DCC Team
+        AclAdmin:
+          access: admin
+        AclCenter:
+          access: edit
+        PermissionsAdmin:
+          entity: ProjectAdmin
+          acl: AclAdmin
+          team: TeamAdmin
+        FolderDataTypeX:
+          name: Data Type X
+        FolderDataTypeY:
+          name: Data Type Y
+
+    On the other hand, a node that is meant to exist as multiple
+    versions could be defined like this:
+
+        ProjectCenter:
+          - name: Center A Data
+          - name: Center B Data
+          - name: Center C Data
+        TeamCenter:
+          - name: Center A Team
+            members: [bgrande, mnikolov]
+          - name: Center B Team
+            members: [xengie.doan, thomas.yu]
+          - name: Center C Team
+            members: [jaeddy, aacebedo]
+        PermissionsCenter:
+          - entity: Center A Data
+            acl: AclCenter
+            team: Center A Team
+          - entity: Center B Data
+            acl: AclCenter
+            team: Center B Team
+          - entity: Center C Data
+            acl: AclCenter
+            team: Center C Team
+
+    In the above example, you can see that the entities with
+    multiple versions each have three definitions. It seems
+    feasible to incorporate logic that these lists are meant
+    to be navigated in parallel (à la zip() in Python).
+
+(4) One open question is how to reference other entities being
+    created. In the above example, each PermissionsCenter needs
+    to reference an entity, an ACL, and a team. The ACL is less
+    problematic because it refers to a top-level key. However,
+    how should one refer to entities and teams? As placeholders,
+    the above example uses the names, but should there be a
+    dedicated 'id' key to avoid ambiguity?
 """
 
 import os
