@@ -100,6 +100,9 @@ def parse_arguments() -> argparse.Namespace:
 
 
 def log(name, obj):
+    # Skip if not verbose
+    if not VERBOSE:
+        return
     # Convert to dictionary (if possible) to leverage json.dumps()
     if getattr(obj, "__dict__", None) is not None:
         obj = vars(obj)
@@ -108,9 +111,8 @@ def log(name, obj):
         obj = json.dumps(obj, indent=4, sort_keys=True)
     else:
         obj = str(obj)
-    # If verbose, print object string
-    if VERBOSE:
-        print(f"{name}: {obj}", end="\n\n")
+    # Print object string
+    print(f"{name}: {obj}", end="\n\n")
 
 
 if __name__ == "__main__":
