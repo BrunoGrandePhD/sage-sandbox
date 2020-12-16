@@ -62,121 +62,30 @@ schematic repository (commit 2b2a29d8):
     - examples/csv_to_schemaorg.py
     - schematic/schemas/examples/explorer_usage.py
     - schematic/schemas/explorer.py
-
-Current Challenges
-~~~~~~~~~~~~~~~~~~
-
-(1) One of the main tasks for this script is determining the order
-    in which the Synapse entities need to be created. Topological
-    sorting of a dependency graph is the simplest approach to
-    addressing this problem. If I understand correctly, schematic
-    organizes attributes as nodes in a graph connected by different
-    edge types (e.g. Requires, Properties). To minimize complexity,
-    the dependency graph for sorting should be generated using only
-    one of the edge types. I propose 'Requires' because it makes
-    the most sense for a dependency graph. However, the current
-    version of the schema doesn't obey the above creation order.
-
-(2) In the current version of the schema, the 'Requires' attributes
-    seem to serve two purposes:
-
-        - To establish the order in which entities should be made.
-        - To implicitly set the value of attribute properties.
-
-    For example, the "admin fileview" requires the two center
-    projects, which implicitly defines the "scope" property, but
-    the admin project should also be a requirement for the
-    dependency graph to work. Instead, the fileview is listed as
-    a requirement for the admin project. This inconsistency
-    makes it impossible to use the 'Requires' graph for sorting.
-    On the other hand, including all dependencies in the
-    'Requires' field then prevents implicit property definition.
-    This latter issue isn't worrisome though because a system
-    would be needed to figure out which property was being
-    implicitly defined (e.g. "scope" in the above example).
-
-(3) In the current of the schema, some elements are repeated per
-    instance and others are not. For example, the center-specific
-    projects and teams are repeated, whereas the folders are not.
-    I propose that the graph is kept as simple as possible, and
-    the properties for different instances (like the name) can be
-    defined in another user-configurable YAML file. I envision
-    something like this if a node is only meant to exist once:
-
-        ProjectAdmin:
-          name: HTAN DCC
-        TeamAdmin:
-          name: HTAN DCC Team
-        AclAdmin:
-          access: admin
-        AclCenter:
-          access: edit
-        PermissionsAdmin:
-          entity: ProjectAdmin
-          acl: AclAdmin
-          team: TeamAdmin
-        FolderDataTypeX:
-          name: Data Type X
-        FolderDataTypeY:
-          name: Data Type Y
-
-    On the other hand, a node that is meant to exist as multiple
-    versions could be defined like this:
-
-        ProjectCenter:
-          - name: Center A Data
-          - name: Center B Data
-          - name: Center C Data
-        TeamCenter:
-          - name: Center A Team
-            members: [bgrande, mnikolov]
-          - name: Center B Team
-            members: [xengie.doan, thomas.yu]
-          - name: Center C Team
-            members: [jaeddy, aacebedo]
-        PermissionsCenter:
-          - entity: Center A Data
-            acl: AclCenter
-            team: Center A Team
-          - entity: Center B Data
-            acl: AclCenter
-            team: Center B Team
-          - entity: Center C Data
-            acl: AclCenter
-            team: Center C Team
-
-    In the above example, you can see that the entities with
-    multiple versions each have three definitions. It seems
-    feasible to incorporate logic that these lists are meant
-    to be navigated in parallel (à la zip() in Python).
-
-(4) One open question is how to reference other entities being
-    created. In the above example, each PermissionsCenter needs
-    to reference an entity, an ACL, and a team. The ACL is less
-    problematic because it refers to a top-level key. However,
-    how should one refer to entities and teams? As placeholders,
-    the above example uses the names, but should there be a
-    dedicated 'id' key to avoid ambiguity?
 """
 
 import os
 import argparse
+from tempfile import mkstemp
 
+from yaml import dump
 import pandas as pd
 import networkx as nx
 
 from schematic.schemas.explorer import SchemaExplorer
 from schematic.schemas.generator import SchemaGenerator
-from schematic.utils.csv_utils import create_schema_classes
+from schematic.utils.csv_utils import create_nx_schema_objects
 from schematic.utils.viz_utils import visualize
 
 
 def main():
     args = parse_arguments()
-    graph = load_dependency_graph(args.csv_schema)
-    visualize_graph(graph, args.output_graph)
-    dependencies = get_dependency_order(graph)
-    print(dependencies)
+    schema = load_schema(args.csv_schema)
+    generator = generate_generator(schema)
+    dependency_graph = get_dependency_subgraph(generator)
+    # visualize_graph(dependency_graph, args.output_graph)
+    dependency_order = get_dependency_order(dependency_graph, args.root_node)
+    generate_template(schema, dependency_order)
 
 
 def parse_arguments():
@@ -187,19 +96,34 @@ def parse_arguments():
     )
     parser.add_argument("csv_schema")
     parser.add_argument("--output_graph")
+    parser.add_argument("--root_node", default="SynapseStructure")
     args = parser.parse_args()
     return args
 
 
-def load_dependency_graph(csv_filepath):
+def load_schema(csv_filepath):
     schema = SchemaExplorer()
     classes = pd.read_csv(csv_filepath)
-    schema = create_schema_classes(classes, schema)
-    schema_nx = schema.get_nx_schema()
-    dependency_graph = SchemaGenerator.get_subgraph_by_edge_type(
-        schema_nx, schema_nx, "requiresDependency"
+    schema = create_nx_schema_objects(classes, schema)
+    return schema
+
+
+def generate_generator(schema):
+    generator = SchemaGenerator(schema_explorer=schema)
+    return generator
+
+
+def get_dependency_subgraph(generator):
+    schema_nx = generator.se.get_nx_schema()
+    dependency_graph = generator.get_subgraph_by_edge_type(
+        schema_nx, "requiresDependency"
     )
     return dependency_graph
+
+
+def get_dependencies(dependency_graph, node):
+    dependencies = nx.descendants(dependency_graph, node)
+    return dependencies
 
 
 def visualize_graph(graph, output_file):
@@ -222,13 +146,30 @@ def visualize_graph(graph, output_file):
 
 def sort_graph_nodes(graph):
     sorted_nodes = nx.topological_sort(graph)
-    return list(sorted_nodes)
+    return sorted_nodes
 
 
-def get_dependency_order(graph):
-    sorted_nodes = sort_graph_nodes(graph)
-    dependencies_first = reversed(sorted_nodes)
-    return list(dependencies_first)
+def get_dependency_order(dependency_graph, root_node):
+    structure_nodes = get_dependencies(dependency_graph, root_node)
+    sorted_nodes = sort_graph_nodes(dependency_graph)
+    dependencies_first = reversed(list(sorted_nodes))
+    isin_structure = lambda x: x in structure_nodes
+    dependencies_first = filter(isin_structure, dependencies_first)
+    return dependencies_first
+
+
+def get_class_attributes(schema, node):
+    parent = schema.explore_class(node)["subClassOf"][0]
+    properties = schema.explore_class(parent)["properties"][0]["properties"]
+    return properties
+
+
+def generate_template(schema, nodes):
+    contents = dict()
+    for node in nodes:
+        node_attributes = get_class_attributes(schema, node)
+        contents[node] = node_attributes
+    print(contents)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-Attribute,Description,Valid Values,Requires,Properties,Required,Parent,Requires Component,Source,Validation Rules
+Attribute,Description,Valid Values,DependsOn,Properties,Required,Parent,DependsOn Component,Source,Validation Rules
 Synapse,Synapse system,,,,FALSE,Information Content Entity,,,
 Project,A synapse project,,name,name,FALSE,Container,Synapse,,
 Team,Synapse team,,name,name,FALSE,Information Content Entity,Synapse,,
@@ -18,3 +18,4 @@ AclCenter,ACL for center teams on center projects,,,,TRUE,ACL,ACL,,
 AclAdmin,ACL for admin team on admin project and center projects,,,,TRUE,ACL,ACL,,
 PermissionsCenter,Granting center permissions for each center on their project,,"ProjectCenter, TeamCenter, AclCenter",,TRUE,Permissions,Permissions,,
 PermissionsAdmin,Granting admin permissions for Admin team on all projects,,"ProjectAdmin, ProjectCenter, TeamAdmin, AclAdmin",,TRUE,Permissions,Permissions,,
+SynapseStructure,,,"ProjectCenter, ProjectAdmin, FileviewDatasets, TeamCenter, TeamAdmin, FolderDataTypeX, FolderDataTypeY, AclCenter, AclAdmin, PermissionsCenter, PermissionsAdmin",,TRUE,,
