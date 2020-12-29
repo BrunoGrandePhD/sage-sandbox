@@ -8,7 +8,7 @@ In light of the pull-rate limits, we are investigating what we can do at Sage to
 
 ### Quick start
 
-This setup was put together based on [pull-through cache documentation](https://docs.docker.com/registry/recipes/mirror/). The following Bash commands were run on an `EC2: Ubuntu Linux with Workflow Software` instance provisioned through the Service Catalog.
+This setup was put together based on [pull-through cache documentation](https://docs.docker.com/registry/recipes/mirror/). The following Bash commands were run on an `EC2: Ubuntu Linux with Workflow Software` instance provisioned through the Service Catalog. Note that I manually installed `docker-compose` using [these instructions](https://docs.docker.com/compose/install/#install-compose-on-linux-systems).
 
 ```bash
 # Set up local Docker registry as pull-through cache using custom config.yml
