@@ -1,0 +1,22 @@
+# This docker-compose was taken from the following page:
+# https://docs.docker.com/registry/deploying/#deploy-your-registry-using-a-compose-file
+# I've commented out sections intended for external access.
+
+services:
+  localcache:
+    container_name: localcache
+    restart: always
+    image: registry:2
+    ports:
+      - 127.0.0.1:5000:5000
+    # environment:
+    #   REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
+    #   REGISTRY_HTTP_TLS_KEY: /certs/domain.key
+    #   REGISTRY_AUTH: htpasswd
+    #   REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+    #   REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+    volumes:
+      - ./config.yml:/etc/docker/registry/config.yml
+      # - /path/data:/var/lib/registry
+      # - /path/certs:/certs
+      # - /path/auth:/auth
