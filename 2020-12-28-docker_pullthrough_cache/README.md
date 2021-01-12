@@ -11,6 +11,14 @@ In light of the pull-rate limits, we are investigating what we can do at Sage to
 This setup was put together based on [pull-through cache documentation](https://docs.docker.com/registry/recipes/mirror/). The following Bash commands were run on an `EC2: Ubuntu Linux with Workflow Software` instance provisioned through the Service Catalog. Note that I manually installed `docker-compose` using [these instructions](https://docs.docker.com/compose/install/#install-compose-on-linux-systems).
 
 ```bash
+# Install docker-compose on 'Ubuntu Linux with Workflow Software' instance
+sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+sudo chmod +x /usr/local/bin/docker-compose
+
+# Update Docker to use the recently added '--pull' option in 'docker run'
+sudo apt-get update
+sudo apt-get install docker-ce-cli
+
 # Set up local Docker registry as pull-through cache using custom config.yml
 # Parameters for `docker run` tracked in docker-compose.yml for brevity
 docker-compose --file docker-compose.yml up --detach
