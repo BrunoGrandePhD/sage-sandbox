@@ -1,0 +1,102 @@
+# Namespaces --------------------------------------------------------
+
+$namespaces:
+  sf: https://sagebionetworks.org/synapseformation/
+  im: https://sagebionetworks.org/imcore/
+
+
+# Projects ----------------------------------------------------------
+
+imCORE Data Repository:
+  # Subfolders
+  iDaP Working Group: {}
+  iDaS Working Group: {}
+  Workflows: {}
+  Data:
+    sf:annotations:
+      key: value
+    Study-087: {}
+    Study-121: {}
+    WeirdlyPlacedTable: 
+      sf:type: sf:Table
+      sf:schema: {...}
+    Study-032:
+      Study-032-Clinical: {}
+      Study-032-IHC: {}
+      Study-032-WES:
+        Staging: {}
+      Study-032-RNAseq:
+        Release:
+          Level1: {}
+          Level2: {}
+          Level3: {}
+        Staging:
+          sf:acl: 
+            im:imCORE Admins: sf:edit_and_delete
+  # Attributes
+  sf:acl:
+    # - sf:principal: im:imcore_network
+    #   sf:access_type: sf:view
+    im:imcore_network: sf:view
+    im:imCORE Admins: sf:administrator
+  # Tables/Views
+  Staged Data Access:
+    sf:type: sf:Table
+    sf:schema:
+      DateAdded: sf:date
+      Dataset: sf:entity
+      Access: 
+        sf:column_type: sf:enum
+        sf:items:
+        - download
+        - edit
+        - edit & delete
+        - view
+      User: sf:user
+      IsCoreLab: sf:boolean
+  Datasets:
+    sf:type: sf:EntityView
+    sf:scope: im:imCORE Data Repository
+    sf:include:
+    - sf:File
+    - sf:Folder
+    sf:add_default_columns: true
+    sf:add_annotation_columns: false
+            
+
+# Teams -------------------------------------------------------------
+
+im:imcore_network:
+  sf:name: imCORE Network
+  sf:type: sf:Team
+  sf:members:
+  - drwilson
+  - drjones
+  - melissa
+
+imCORE Collaborative:
+  sf:type: sf:Team
+  sf:members:
+  - drwilson
+  - melissa
+
+imCORE Admins:
+  sf:type: sf:Team
+  sf:members:
+  - bgrande
+  - jaeddy
+
+
+# Summary -----------------------------------------------------------
+
+# Rule 1: Hierarchical structure represents parent-child relationships
+# Rule 2: Top-level resources are assumed to be projects whereas other
+#         resources are assumed to be folders (if `type` isn't given)
+# Rule 3: The key name is assumed to be the resource name on Synapse.
+#         unless the `name` attribute is given.
+# Rule 4: Non-children fields should use the SynapseFormation namespace.
+# Rule 5: Entity/principal IDs will be populated when resources are 
+#         created to prevent their re-creation if re-deployed.
+
+# Questions:
+# - Should IDs and/or URLs be provided for existing resources?
