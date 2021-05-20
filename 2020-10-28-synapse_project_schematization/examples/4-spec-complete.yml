@@ -1,0 +1,78 @@
+ProjectCenter: 
+  type: Project
+  instances:
+    - id: null
+      name: "imCORE - Center A"
+    - id: null
+      name: "imCORE - Center B"
+    - id: null
+      name: "imCORE - Center C"
+
+ProjectAdmin: 
+  type: Project
+  instances:
+    - id: null
+      name: "imCORE - Admin"
+
+FileviewDatasets: 
+  type: Fileview
+  instances:
+    - id: null
+      name: "imCORE - Datasets Table"
+      parent: ProjectAdmin
+      scope: [ProjectCenter]
+
+TeamCenter: 
+  type: Team
+  instances:
+    - id: null
+      name: "imCORE - Center A Team"
+      members: ["dr_foo", "gradstudent1"]
+    - id: null
+      name: "imCORE - Center B Team"
+      members: ["dr_bar", "gradstudent2", "gradstudent3"]
+    - id: null
+      name: "imCORE - Center C Team"
+      members: []
+
+TeamAdmin: 
+  type: Team
+  instances:
+    - id: null
+      name: "imCORE - Admin Team"
+      members: ["jaeddy", "bgrande", "kthrog", "aacebedo"]
+
+FolderDataTypeX: 
+  type: Folder
+  instances:
+    - id: null
+      name: "Dataset - Data Type X"
+      parent: ProjectCenter
+
+FolderDataTypeY: 
+  type: Folder
+  instances:
+    - id: null
+      name: "Dataset - Data Type Y"
+      parent: ProjectCenter
+
+PermissionsCenter: 
+  type: Permissions
+  instances:
+    - target: ProjectCenter
+      recipient: TeamCenter
+      access: "view"
+
+PermissionsAdminForCenterProjects: 
+  type: Permissions
+  instances:
+    - target: ProjectCenter
+      recipient: TeamAdmin
+      access: "admin"
+
+PermissionsAdminForAdminProject: 
+  type: Permissions
+  instances:
+    - target: ProjectAdmin
+      recipient: TeamAdmin
+      access: "admin"

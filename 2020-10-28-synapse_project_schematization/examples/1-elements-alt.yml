@@ -1,0 +1,30 @@
+ProjectCenter: 
+  type: Project
+  dependencies: []
+ProjectAdmin: 
+  type: Project
+  dependencies: []
+FileviewDatasets: 
+  type: Fileview
+  dependencies: []
+TeamCenter: 
+  type: Team
+  dependencies: []
+TeamAdmin: 
+  type: Team
+  dependencies: [ProjectCenter]
+FolderDataTypeX: 
+  type: Folder
+  dependencies: [ProjectCenter]
+FolderDataTypeY: 
+  type: Folder
+  dependencies: [ProjectCenter, ProjectAdmin]
+PermissionsCenter: 
+  type: Permissions
+  dependencies: [ProjectCenter, TeamCenter]
+PermissionsAdminForCenterProjects: 
+  type: Permissions
+  dependencies: [ProjectCenter, TeamAdmin]
+PermissionsAdminForAdminProject: 
+  type: Permissions
+  dependencies: [ProjectAdmin, TeamAdmin]

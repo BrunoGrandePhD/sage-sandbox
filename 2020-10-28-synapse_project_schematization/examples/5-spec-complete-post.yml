@@ -1,0 +1,78 @@
+ProjectCenter: 
+  type: Project
+  instances:
+    - id: "syn71832423"
+      name: "imCORE - Center A"
+    - id: "syn38260061"
+      name: "imCORE - Center B"
+    - id: "syn19380506"
+      name: "imCORE - Center C"
+
+ProjectAdmin: 
+  type: Project
+  instances:
+    - id: "syn87705958"
+      name: "imCORE - Admin"
+
+FileviewDatasets: 
+  type: Fileview
+  instances:
+    - id: "syn23764024"
+      name: "imCORE - Datasets Table"
+      parent: ProjectAdmin
+      scope: [ProjectCenter]
+
+TeamCenter: 
+  type: Team
+  instances:
+    - id: 8788607
+      name: "imCORE - Center A Team"
+      members: ["dr_foo", "gradstudent1"]
+    - id: 0892865
+      name: "imCORE - Center B Team"
+      members: ["dr_bar", "gradstudent2", "gradstudent3"]
+    - id: 4782934
+      name: "imCORE - Center C Team"
+      members: []
+
+TeamAdmin: 
+  type: Team
+  instances:
+    - id: 3072009
+      name: "imCORE - Admin Team"
+      members: ["jaeddy", "bgrande", "kthrog", "aacebedo"]
+
+FolderDataTypeX: 
+  type: Folder
+  instances:
+    - id: "syn48497422"
+      name: "Dataset - Data Type X"
+      parent: ProjectCenter
+
+FolderDataTypeY: 
+  type: Folder
+  instances:
+    - id: "syn84253469"
+      name: "Dataset - Data Type Y"
+      parent: ProjectCenter
+
+PermissionsCenter: 
+  type: Permissions
+  instances:
+    - target: ProjectCenter
+      recipient: TeamCenter
+      access: "view"
+
+PermissionsAdminForCenterProjects: 
+  type: Permissions
+  instances:
+    - target: ProjectCenter
+      recipient: TeamAdmin
+      access: "admin"
+
+PermissionsAdminForAdminProject: 
+  type: Permissions
+  instances:
+    - target: ProjectAdmin
+      recipient: TeamAdmin
+      access: "admin"

@@ -1,0 +1,58 @@
+# Single instances (one-to-many pairings)
+ProjectAdmin:
+  - id: null
+    name: HTAN DCC
+TeamAdmin:
+  - id: null
+    name: HTAN DCC Team
+AclAdmin:
+  - id: null
+    access: admin
+AclCenter:
+  - id: null
+    access: edit
+PermissionsAdmin:
+  - id: null
+    entity: ProjectAdmin
+  - id: null
+    acl: AclAdmin
+  - id: null
+    team: TeamAdmin
+FolderDataTypeX:
+  - id: null
+    name: Data Type X
+FolderDataTypeY:
+  - id: null
+    name: Data Type Y
+
+# Multiple instances (one-to-one pairings)
+ProjectCenter:
+  - id: null
+    name: Center A Data
+  - id: null
+    name: Center B Data
+  - id: null
+    name: Center C Data
+TeamCenter:
+  - id: null
+    name: Center A Team
+    members: [bgrande, mnikolov]
+  - id: null
+    name: Center B Team
+    members: [xengie.doan, thomas.yu]
+  - id: null
+    name: Center C Team
+    members: [jaeddy, aacebedo]
+PermissionsCenter:
+  - id: null
+    entity: Center A Data
+    acl: AclCenter
+    team: Center A Team
+  - id: null
+    entity: Center B Data
+    acl: AclCenter
+    team: Center B Team
+  - id: null
+    entity: Center C Data
+    acl: AclCenter
+    team: Center C Team

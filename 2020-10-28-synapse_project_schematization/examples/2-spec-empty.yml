@@ -1,0 +1,61 @@
+ProjectCenter: 
+  type: Project
+  instances:
+    - id: null  # Only set if pre-existing - If so, other attributes are ignored
+      name: null  # Required - Expected type: string
+
+ProjectAdmin: 
+  type: Project
+  instances:
+    - id: null  # Only set if pre-existing - If so, other attributes are ignored
+      name: null  # Required - Expected type: string
+
+FileviewDatasets: 
+  type: Fileview
+  instances:
+    - id: null  # Only set if pre-existing - If so, other attributes are ignored
+      name: null  # Required - Expected type: string
+      parent: null  # Required - Expected type: Project
+      scope: []  # Required - Expected type: Project or Folder
+
+TeamCenter: 
+  type: Team
+  instances:
+    - id: null  # Only set if pre-existing - If so, other attributes are ignored
+      name: null  # Required - Expected type: string
+      members: []  # Optional - Expected type: User
+
+TeamAdmin: 
+  type: Team
+  instances:
+    - id: null  # Only set if pre-existing - If so, other attributes are ignored
+      name: null  # Required - Expected type: string
+      members: []  # Optional - Expected type: User
+
+FolderDataTypeX: 
+  type: Folder
+  instances:
+    - id: null  # Only set if pre-existing - If so, other attributes are ignored
+      name: null  # Required - Expected type: string
+      parent: null  # Required - Expected type: Project or Folder
+
+FolderDataTypeY: 
+  type: Folder
+  instances:
+    - id: null  # Only set if pre-existing - If so, other attributes are ignored
+      name: null  # Required - Expected type: string
+      parent: null  # Required - Expected type: Project or Folder
+
+PermissionsCenter: 
+  type: Permissions
+  instances:
+    - target: null  # Required - Expected type: Project or Folder
+      recipient: null  # Required - Expected type: User or Team
+      access: null  # Required - One of: admin, edit, edit_delete, or view
+
+PermissionsAdmin: 
+  type: Permissions
+  instances:
+    - target: null  # Required - Expected type: Project or Folder
+      recipient: null  # Required - Expected type: User or Team
+      access: null  # Required - Expected values: 
