@@ -13,7 +13,7 @@ SYN_ENTITY = sys.argv[1]
 S3_BUCKET = sys.argv[2]
 S3_ROOT_KEY = sys.argv[3]
 
-syn = synapseclient.login()
+syn = synapseclient.login(silent=True)
 session = requests.Session()
 s3 = boto3.client("s3")
 
@@ -23,17 +23,25 @@ for dirpath, dirnames, filenames in synapseutils.walk(syn, SYN_ENTITY):
     for filename, fileid in filenames:
         # Build S3 object key and URI
         subdirname = dirname.partition("/")[2]
-        filepath = f"{subdirname}/{filename}"
-        s3_key = S3_ROOT_KEY + "/" + filepath
+        if subdirname:
+            filename = f"{subdirname}/{filename}"
+        s3_key = f"{S3_ROOT_KEY}/{filename}"
         s3_uri = f"s3://{S3_BUCKET}/{s3_key}"
         # Retrieve the pre-signed URL from Synapse
         file = syn.get(fileid, downloadFile=False)
+        if not file.concreteType.endswith("FileEntity"):
+            continue
         handle_id = file._file_handle.id
+        url_params = {
+            "redirect": False,
+            "fileAssociateType": "FileEntity",
+            "fileAssociateId": fileid,
+        }
         presigned_url = syn.restGET(
-            f"/fileHandle/{handle_id}/url",
+            f"/file/{handle_id}",
             syn.fileHandleEndpoint,
             requests_session=session,
-            params={"redirect": False},
+            params=url_params,
         )
         # Stream URL response to S3 using multipart upload
         print(f"{fileid} --> {s3_uri}")
